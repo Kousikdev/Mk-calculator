@@ -1,16 +1,13 @@
-
-import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
-
-const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+import { GoogleGenAI } from "@google/genai";
 
 export const geminiService = {
   // Complex reasoning/chat with Thinking Mode
   async chatWithThinking(prompt: string): Promise<string> {
-    const ai = getAI();
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     try {
       const response = await ai.models.generateContent({
         model: "gemini-3-pro-preview",
-        contents: prompt,
+        contents: [{ parts: [{ text: prompt }] }],
         config: {
           thinkingConfig: { thinkingBudget: 32768 }
         },
@@ -24,28 +21,29 @@ export const geminiService = {
 
   // Fast AI responses for simple queries
   async fastResponse(prompt: string): Promise<string> {
-    const ai = getAI();
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-lite-latest",
-        contents: prompt,
+        model: "gemini-3-flash-preview",
+        contents: [{ parts: [{ text: prompt }] }],
       });
       return response.text || "";
     } catch (error) {
       console.error("Fast response error:", error);
-      return "";
+      return "Sorry, I encountered an error. Please try again.";
     }
   },
 
   // Analyze math problems from images
   async analyzeMathImage(base64Image: string): Promise<string> {
-    const ai = getAI();
+    const cleanBase64 = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     try {
       const response = await ai.models.generateContent({
         model: "gemini-3-pro-preview",
         contents: {
           parts: [
-            { inlineData: { data: base64Image, mimeType: 'image/png' } },
+            { inlineData: { data: cleanBase64, mimeType: 'image/png' } },
             { text: "Solve this math problem. Show steps and the final answer clearly." }
           ]
         }
@@ -53,17 +51,17 @@ export const geminiService = {
       return response.text || "Could not recognize problem.";
     } catch (error) {
       console.error("Image analysis error:", error);
-      return "Failed to analyze image.";
+      return "Failed to analyze image. Please ensure the image is clear.";
     }
   },
 
   // Search Grounding for current exchange rates or news
   async searchMarketInfo(query: string): Promise<{ text: string; sources: any[] }> {
-    const ai = getAI();
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: query,
+        model: "gemini-3-pro-preview",
+        contents: [{ parts: [{ text: query }] }],
         config: {
           tools: [{ googleSearch: {} }]
         }
@@ -74,7 +72,7 @@ export const geminiService = {
       };
     } catch (error) {
       console.error("Search grounding error:", error);
-      return { text: "Error fetching live data.", sources: [] };
+      return { text: "Error fetching live market data.", sources: [] };
     }
   }
 };
