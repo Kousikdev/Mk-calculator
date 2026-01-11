@@ -1,19 +1,25 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Calculator, RefreshCw, DollarSign, Bot, Settings, ChevronLeft } from 'lucide-react';
+import { Calculator, RefreshCw, DollarSign, Bot, Settings, Info } from 'lucide-react';
 import { AppMode } from '../types';
+import { playClickSound } from '../services/audioService';
 
 interface LayoutProps {
   activeMode: AppMode;
   onModeChange: (mode: AppMode) => void;
   children: React.ReactNode;
+  soundEnabled: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ activeMode, onModeChange, children }) => {
+const Layout: React.FC<LayoutProps> = ({ activeMode, onModeChange, children, soundEnabled }) => {
+  const handleAction = (callback: () => void) => {
+    playClickSound(soundEnabled);
+    callback();
+  };
+
   const NavItem = ({ mode, icon: Icon, label }: { mode: AppMode, icon: any, label: string }) => (
     <button
-      onClick={() => onModeChange(mode)}
+      onClick={() => handleAction(() => onModeChange(mode))}
       className={`flex flex-col items-center justify-center gap-1 py-3 transition-all relative ${
         activeMode === mode ? 'text-indigo-400' : 'text-white/40 hover:text-white/60'
       }`}
@@ -36,15 +42,26 @@ const Layout: React.FC<LayoutProps> = ({ activeMode, onModeChange, children }) =
       <div className="absolute bottom-[-10%] right-[-10%] w-64 h-64 bg-purple-600/20 rounded-full blur-[80px]" />
 
       <header className="px-6 py-6 flex items-center justify-between z-10">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleAction(() => onModeChange('calculator'))}>
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-600/30">
             <span className="font-bold text-white">N</span>
           </div>
           <h1 className="text-xl font-bold tracking-tight">NovaCalc</h1>
         </div>
-        <button onClick={() => onModeChange('settings')} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-          <Settings className="w-5 h-5 text-white/60" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button 
+            onClick={() => handleAction(() => onModeChange('about'))} 
+            className={`p-2 rounded-full transition-colors ${activeMode === 'about' ? 'bg-indigo-500/20 text-indigo-400' : 'hover:bg-white/5 text-white/60'}`}
+          >
+            <Info className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={() => handleAction(() => onModeChange('settings'))} 
+            className={`p-2 rounded-full transition-colors ${activeMode === 'settings' ? 'bg-indigo-500/20 text-indigo-400' : 'hover:bg-white/5 text-white/60'}`}
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 overflow-hidden z-10 glass mx-4 mb-24 rounded-3xl border border-white/10">

@@ -1,5 +1,4 @@
-
-export type AppMode = 'calculator' | 'converter' | 'currency' | 'ai-assistant' | 'settings';
+export type AppMode = 'calculator' | 'converter' | 'currency' | 'ai-assistant' | 'settings' | 'about';
 export type CalcLayout = 'standard' | 'scientific';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
@@ -15,6 +14,7 @@ export interface AppSettings {
   layout: CalcLayout;
   buttonSize: ButtonSize;
   precision: number;
+  soundEnabled: boolean;
 }
 
 export interface AppTheme {
